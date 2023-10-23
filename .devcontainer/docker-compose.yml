@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+    app:
+        container_name: arches-dev
+        build:
+            context: ..
+            dockerfile: .devcontainer/Dockerfile
+        volumes:
+            - ../..:/workspaces:cached
+        environment:
+            - DATABASE_URL=postgresql://arches:elite2-snowbound-tableware@archesdb:5432/arches
+        command: sleep infinity
+        network_mode: service:archesdb
+        depends_on:
+            - archesdb
+    archesdb:
+        container_name: archesdb
+        image: postgres:latest
+        restart: unless-stopped
+        volumes:
+            - postgres-data:/var/lib/postgresql/data
+        environment:
+            POSTGRES_USER: arches
+            POSTGRES_DB: arches
+            POSTGRES_PASSWORD: elite2-snowbound-tableware
+    archeselastic:
+        container_name: archeselastic
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.10.4
+        restart: unless-stopped
+        network_mode: service:archesdb
+    archesdbadmin:
+        container_name: arches-dbadmin
+        image: dpage/pgadmin4
+        restart: unless-stopped
+        network_mode: service:archesdb
+        environment:
+            PGADMIN_DEFAULT_EMAIL: admin@example.com
+            PGADMIN_DEFAULT_PASSWORD: SuperSecret
+            PGADMIN_LISTEN_PORT: 5433
+volumes:
+    postgres-data:
